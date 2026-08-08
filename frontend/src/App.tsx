@@ -22,10 +22,14 @@ export function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<DripSuccess | null>(null);
-  const [cooldownHint, setCooldownHint] = useState<string | null>(null);
+  const [nextClaimAt, setNextClaimAt] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
+  const cooldownHint =
+    nextClaimAt != null && nextClaimAt > now
+      ? `On cooldown — next claim in ${formatCountdown(nextClaimAt, now)}`
+      : null;
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -55,10 +59,12 @@ export function App() {
     };
   }, [slug]);
 
+  // Fetch cooldown once per address change (debounced). Do NOT depend on `now`
+  // or this refetches every second while the countdown ticks.
   useEffect(() => {
     const trimmed = address.trim();
     if (!slug || !trimmed || validateAddress(trimmed)) {
-      setCooldownHint(null);
+      setNextClaimAt(null);
       return;
     }
     let cancelled = false;
@@ -66,22 +72,18 @@ export function App() {
       try {
         const status = await fetchCooldown(slug, trimmed);
         if (cancelled) return;
-        if (!status.canClaim && status.nextClaimAt) {
-          setCooldownHint(
-            `On cooldown — next claim in ${formatCountdown(status.nextClaimAt, now)}`,
-          );
-        } else {
-          setCooldownHint(null);
-        }
+        setNextClaimAt(
+          !status.canClaim && status.nextClaimAt ? status.nextClaimAt : null,
+        );
       } catch {
-        if (!cancelled) setCooldownHint(null);
+        if (!cancelled) setNextClaimAt(null);
       }
     }, 400);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [address, slug, now]);
+  }, [address, slug]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -112,9 +114,7 @@ export function App() {
       setSuccess(result);
       setToken("");
       setResetSignal((n) => n + 1);
-      setCooldownHint(
-        `Next claim in ${formatCountdown(result.nextClaimAt, Date.now())}`,
-      );
+      setNextClaimAt(result.nextClaimAt);
       const refreshed = await fetchChainInfo(slug);
       setInfo(refreshed);
     } catch (err) {
@@ -125,7 +125,7 @@ export function App() {
       if (err instanceof Error && "nextClaimAt" in err) {
         const next = (err as Error & { nextClaimAt?: number }).nextClaimAt;
         if (typeof next === "number") {
-          setCooldownHint(`Next claim in ${formatCountdown(next, Date.now())}`);
+          setNextClaimAt(next);
         }
       }
     } finally {
