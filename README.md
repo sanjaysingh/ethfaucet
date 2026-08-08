@@ -73,7 +73,7 @@ CORS reflects only allowlisted origins (not `*`).
    npx wrangler secret put PRIVATE_KEY_SEPOLIA
    ```
 4. Set vars (dashboard or `wrangler.toml` / `wrangler secret` as appropriate):
-   - `ALLOWED_ORIGINS` — e.g. `https://<user>.github.io,https://app.sanjaysingh.net`
+   - `ALLOWED_ORIGINS` — e.g. `https://ethfaucet.sanjaysingh.net,https://ethwallet.sanjaysingh.net`
    - `RPC_URL_SEPOLIA` — Sepolia RPC URL
    - `PAUSED_CHAINS` — optional, e.g. `sepolia`
 5. Later: attach custom domain `faucet.sanjaysingh.net` in Cloudflare (same zone as `api.sanjaysingh.net`).
