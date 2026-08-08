@@ -27,7 +27,7 @@ export type DripRequestMessage = {
 
 export type DripResponseMessage =
   | { ok: true; txHash: `0x${string}`; faucetAddress: `0x${string}` }
-  | { ok: false; error: string };
+  | { ok: false; error: string; detail?: string };
 
 function reviveResolved(raw: DripRequestMessage["resolved"]): ResolvedChain {
   return {
@@ -97,7 +97,11 @@ export class FaucetSigner implements DurableObject {
         return { ok: false, error: message };
       }
       console.error("drip failed", message);
-      return { ok: false, error: "DRIP_FAILED" };
+      // Surface RPC/config failures distinctly from unknown bugs.
+      if (/fetch|rpc|http|network|timeout|econn|status/i.test(message)) {
+        return { ok: false, error: "RPC_ERROR" };
+      }
+      return { ok: false, error: "DRIP_FAILED", detail: message };
     }
   }
 }

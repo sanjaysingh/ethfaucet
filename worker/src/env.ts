@@ -42,7 +42,10 @@ export function parsePausedChains(raw: string | undefined): Set<string> {
 
 export function getEnvString(env: Env, key: string): string | undefined {
   const value = env[key];
-  return typeof value === "string" && value.length > 0 ? value : undefined;
+  if (typeof value !== "string") return undefined;
+  // Trim paste artifacts from `wrangler secret put` (newlines/quotes/spaces).
+  const trimmed = value.trim().replace(/^['"]|['"]$/g, "");
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 export function resolveChain(

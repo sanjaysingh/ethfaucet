@@ -88,7 +88,8 @@ export async function handleInfo(
     const wei = await getFaucetBalanceWei(publicClient, account.address);
     balance = formatBalanceEth(wei);
   } catch (err) {
-    console.error("info balance lookup failed", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("info balance lookup failed", message);
   }
 
   return json(request, env, {
@@ -247,6 +248,15 @@ export async function handleDrip(
         400,
       );
     }
+    if (dripResult.error === "RPC_ERROR") {
+      return json(
+        request,
+        env,
+        { error: "Unable to reach chain RPC. Check RPC_URL_SEPOLIA." },
+        503,
+      );
+    }
+    console.error("drip failed", dripResult.error, dripResult.detail);
     return json(request, env, { error: "Failed to send drip" }, 500);
   }
 
