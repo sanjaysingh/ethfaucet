@@ -21,19 +21,7 @@ afterEach(() => {
 });
 
 describe("App", () => {
-  it("renders brand and chain selector from API", async () => {
-    vi.spyOn(api, "fetchChains").mockResolvedValue([
-      {
-        slug: "sepolia",
-        name: "Sepolia",
-        chainId: 11155111,
-        dripAmount: "0.01",
-        cooldownSeconds: 86400,
-        symbol: "ETH",
-        decimals: 18,
-        explorerUrl: "https://sepolia.etherscan.io",
-      },
-    ]);
+  it("renders brand with Sepolia selected and disabled", async () => {
     vi.spyOn(api, "fetchChainInfo").mockResolvedValue({
       slug: "sepolia",
       name: "Sepolia",
@@ -51,25 +39,18 @@ describe("App", () => {
 
     expect(screen.getByText("Dripwell")).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByRole("combobox")).toHaveValue("sepolia");
+      const select = screen.getByRole("combobox");
+      expect(select).toHaveValue("sepolia");
+      expect(select).toBeDisabled();
       expect(screen.getByText("0.01 ETH")).toBeInTheDocument();
     });
+    expect(
+      screen.queryByText(/API for other apps/i),
+    ).not.toBeInTheDocument();
   });
 
   it("validates address before submitting", async () => {
     const user = userEvent.setup();
-    vi.spyOn(api, "fetchChains").mockResolvedValue([
-      {
-        slug: "sepolia",
-        name: "Sepolia",
-        chainId: 11155111,
-        dripAmount: "0.01",
-        cooldownSeconds: 86400,
-        symbol: "ETH",
-        decimals: 18,
-        explorerUrl: "https://sepolia.etherscan.io",
-      },
-    ]);
     vi.spyOn(api, "fetchChainInfo").mockResolvedValue({
       slug: "sepolia",
       name: "Sepolia",
@@ -85,7 +66,7 @@ describe("App", () => {
     const drip = vi.spyOn(api, "requestDrip");
 
     render(<App />);
-    await waitFor(() => expect(screen.getByRole("combobox")).toBeEnabled());
+    await waitFor(() => expect(screen.getByText("0.01 ETH")).toBeInTheDocument());
 
     await user.click(screen.getByRole("button", { name: "Solve captcha" }));
     await user.click(screen.getByRole("button", { name: "Request drip" }));

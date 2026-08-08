@@ -45,11 +45,11 @@ export type ApiError = {
   nextClaimAt?: number;
 };
 
+/** Production Worker URL; override with VITE_FAUCET_API_URL for local/dev. */
+export const DEFAULT_FAUCET_API_URL = "https://faucet-api.times2.workers.dev";
+
 function apiBase(): string {
-  const base = import.meta.env.VITE_FAUCET_API_URL;
-  if (!base) {
-    throw new Error("VITE_FAUCET_API_URL is not configured");
-  }
+  const base = import.meta.env.VITE_FAUCET_API_URL || DEFAULT_FAUCET_API_URL;
   return base.replace(/\/$/, "");
 }
 

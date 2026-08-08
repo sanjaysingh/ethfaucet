@@ -19,5 +19,5 @@ tag = "v1"
 new_sqlite_classes = ["FaucetSigner"]
 
 [vars]
-ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+ALLOWED_ORIGINS = "https://ethfaucet.sanjaysingh.net,http://localhost:5173,http://127.0.0.1:5173"
 PAUSED_CHAINS = ""

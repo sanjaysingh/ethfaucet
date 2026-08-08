@@ -41,9 +41,11 @@ jobs:
   deploy-frontend:
     name: Deploy GitHub Pages
     needs: changes
+    # On push: deploy only if frontend/shared changed.
+    # On manual run: deploy ONLY when deploy_frontend is checked (ignore path filter).
     if: |
-      needs.changes.outputs.frontend == 'true' ||
-      github.event_name == 'workflow_dispatch' && inputs.deploy_frontend
+      (github.event_name == 'push' && needs.changes.outputs.frontend == 'true') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_frontend == true)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,9 +78,11 @@ jobs:
   deploy-worker:
     name: Deploy Cloudflare Worker
     needs: changes
+    # On push: deploy only if worker/shared changed.
+    # On manual run: deploy ONLY when deploy_worker is checked (ignore path filter).
     if: |
-      needs.changes.outputs.worker == 'true' ||
-      github.event_name == 'workflow_dispatch' && inputs.deploy_worker
+      (github.event_name == 'push' && needs.changes.outputs.worker == 'true') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_worker == true)
     runs-on: ubuntu-latest
     defaults:
       run:

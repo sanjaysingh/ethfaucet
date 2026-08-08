@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   fetchChainInfo,
-  fetchChains,
   fetchCooldown,
   requestDrip,
   type ChainInfo,
-  type ChainSummary,
   type DripSuccess,
 } from "./api";
 import { formatCountdown, validateAddress } from "./validation";
 import { Turnstile } from "./Turnstile";
 
+const DEFAULT_CHAIN_SLUG = "sepolia";
+const DEFAULT_CHAIN_NAME = "Sepolia";
+
 export function App() {
-  const [chains, setChains] = useState<ChainSummary[]>([]);
-  const [slug, setSlug] = useState("");
+  const [slug] = useState(DEFAULT_CHAIN_SLUG);
   const [info, setInfo] = useState<ChainInfo | null>(null);
   const [address, setAddress] = useState("");
   const [token, setToken] = useState("");
@@ -26,10 +26,6 @@ export function App() {
   const [now, setNow] = useState(Date.now());
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
-  const selected = useMemo(
-    () => chains.find((c) => c.slug === slug) ?? null,
-    [chains, slug],
-  );
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -41,40 +37,17 @@ export function App() {
     (async () => {
       try {
         setLoading(true);
-        const list = await fetchChains();
+        const next = await fetchChainInfo(slug);
         if (cancelled) return;
-        setChains(list);
-        setSlug((prev) => prev || list[0]?.slug || "");
+        setInfo(next);
         setError(null);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load chains");
+          setInfo(null);
+          setError(err instanceof Error ? err.message : "Failed to load faucet");
         }
       } finally {
         if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!slug) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const next = await fetchChainInfo(slug);
-        if (!cancelled) {
-          setInfo(next);
-          setSuccess(null);
-          setCooldownHint(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setInfo(null);
-          setError(err instanceof Error ? err.message : "Failed to load chain");
-        }
       }
     })();
     return () => {
@@ -118,10 +91,6 @@ export function App() {
     const addressError = validateAddress(address);
     if (addressError) {
       setError(addressError);
-      return;
-    }
-    if (!slug) {
-      setError("Select a chain");
       return;
     }
     if (!token) {
@@ -177,21 +146,13 @@ export function App() {
 
       <main className="panel">
         {loading ? (
-          <p className="hint">Loading chains…</p>
+          <p className="hint">Loading faucet…</p>
         ) : (
           <form className="form" onSubmit={onSubmit} noValidate>
             <label className="field">
               <span>Network</span>
-              <select
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                disabled={chains.length === 0}
-              >
-                {chains.map((c) => (
-                  <option key={c.slug} value={c.slug}>
-                    {c.name}
-                  </option>
-                ))}
+              <select value={slug} disabled aria-disabled="true">
+                <option value={DEFAULT_CHAIN_SLUG}>{DEFAULT_CHAIN_NAME}</option>
               </select>
             </label>
 
@@ -246,7 +207,7 @@ export function App() {
             <button
               type="submit"
               className="cta"
-              disabled={submitting || !selected || info?.paused}
+              disabled={submitting || info?.paused}
             >
               {submitting ? "Sending…" : "Request drip"}
             </button>
@@ -268,17 +229,11 @@ export function App() {
         )}
       </main>
 
-      <footer className="footer">
-        <p>
-          API for other apps on allowlisted origins. Multi-chain ready — add
-          networks in the worker registry.
-        </p>
-        {info?.faucetAddress && (
-          <p className="mono">
-            Faucet: {info.faucetAddress}
-          </p>
-        )}
-      </footer>
+      {info?.faucetAddress && (
+        <footer className="footer">
+          <p className="mono">Faucet: {info.faucetAddress}</p>
+        </footer>
+      )}
     </div>
   );
 }
