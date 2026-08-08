@@ -110,8 +110,8 @@ Also supports `workflow_dispatch` with force flags.
 | --- | --- | --- |
 | `CF_API_TOKEN` | GitHub Actions secret | Worker deploy |
 | `CF_ACCOUNT_ID` | GitHub Actions secret | Worker deploy |
-| `VITE_FAUCET_API_URL` | GitHub Actions variable | Frontend build |
-| `VITE_TURNSTILE_SITE_KEY` | GitHub Actions variable | Frontend build |
+| `VITE_FAUCET_API_URL` | GitHub Actions secret or variable | Frontend build (optional; defaults in app) |
+| `VITE_TURNSTILE_SITE_KEY` | GitHub Actions secret or variable | Frontend build (Turnstile site key) |
 
 Enable GitHub Pages with **Source: GitHub Actions**.
 

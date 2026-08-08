@@ -67,8 +67,9 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          VITE_FAUCET_API_URL: ${{ vars.VITE_FAUCET_API_URL }}
-          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+          # Prefer secrets (what you set); fall back to Actions variables.
+          VITE_FAUCET_API_URL: ${{ secrets.VITE_FAUCET_API_URL || vars.VITE_FAUCET_API_URL }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY || vars.VITE_TURNSTILE_SITE_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist
