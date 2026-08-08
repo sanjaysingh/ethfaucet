@@ -1,0 +1,4 @@
+TURNSTILE_SECRET_KEY=replace-me
+IP_HASH_SALT=replace-with-random-string
+PRIVATE_KEY_SEPOLIA=0xYOUR_FAUCET_PRIVATE_KEY
+RPC_URL_SEPOLIA=https://ethereum-sepolia-rpc.publicnode.com

@@ -1,0 +1,10 @@
+{
+  "name": "dripwell-faucet",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Multi-chain testnet faucet (GitHub Pages + Cloudflare Worker)",
+  "scripts": {
+    "test": "npm run test --prefix worker && npm run test --prefix frontend",
+    "typecheck": "npm run typecheck --prefix worker && npm run typecheck --prefix frontend"
+  }
+}

@@ -1,0 +1,23 @@
+name = "faucet-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-12"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "COOLDOWN_KV"
+id = "666f68876f2b4b779eaca70cff7dcc3d"
+preview_id = "d96dce81abca44fb9c7098bbbaa4b505"
+
+[durable_objects]
+bindings = [
+  { name = "FAUCET_SIGNER", class_name = "FaucetSigner" }
+]
+
+[[migrations]]
+tag = "v1"
+# Free plan requires SQLite-backed Durable Objects
+new_sqlite_classes = ["FaucetSigner"]
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+PAUSED_CHAINS = ""
