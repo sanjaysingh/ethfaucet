@@ -47,6 +47,10 @@ describe("App", () => {
     expect(
       screen.queryByText(/API for other apps/i),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "0xabc" })).toHaveAttribute(
+      "href",
+      "https://sepolia.etherscan.io/address/0xabc",
+    );
   });
 
   it("validates address before submitting", async () => {

@@ -231,7 +231,16 @@ export function App() {
 
       {info?.faucetAddress && (
         <footer className="footer">
-          <p className="mono">Faucet: {info.faucetAddress}</p>
+          <p className="mono">
+            Faucet:{" "}
+            <a
+              href={`${info.explorerUrl.replace(/\/$/, "")}/address/${info.faucetAddress}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {info.faucetAddress}
+            </a>
+          </p>
         </footer>
       )}
     </div>
