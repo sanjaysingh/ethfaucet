@@ -137,10 +137,10 @@ export function App() {
     <div className="page">
       <div className="atmosphere" aria-hidden="true" />
       <header className="hero">
-        <p className="brand">Dripwell</p>
+        <p className="brand">Eth Faucet</p>
         <h1 className="headline">Testnet ether, on tap.</h1>
         <p className="lede">
-          Claim a small drip for development. Cooldown applies per address and IP.
+          Claim a small amount for development. Cooldown applies per address and IP.
         </p>
       </header>
 

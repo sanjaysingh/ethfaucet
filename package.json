@@ -1,5 +1,5 @@
 {
-  "name": "dripwell-faucet",
+  "name": "eth-faucet",
   "private": true,
   "version": "0.1.0",
   "description": "Multi-chain testnet faucet (GitHub Pages + Cloudflare Worker)",

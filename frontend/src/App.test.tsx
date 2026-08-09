@@ -37,7 +37,7 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(screen.getByText("Dripwell")).toBeInTheDocument();
+    expect(screen.getByText("Eth Faucet")).toBeInTheDocument();
     await waitFor(() => {
       const select = screen.getByRole("combobox");
       expect(select).toHaveValue("sepolia");
