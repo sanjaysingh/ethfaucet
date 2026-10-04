@@ -19,6 +19,7 @@ import {
 } from "./cooldown";
 import { getCorsHeaders, isOriginAllowed } from "./cors";
 import { resolveChain, type Env } from "./env";
+import { fetchEthUsd, usdFromEth } from "./price";
 import { dripViaSigner } from "./signer";
 import { verifyTurnstile } from "./turnstile";
 
@@ -81,6 +82,7 @@ export async function handleInfo(
   const { chain } = resolved;
   let faucetAddress: string | null = null;
   let balance: string | null = null;
+  const pricePromise = fetchEthUsd();
 
   try {
     const { publicClient, account } = createClients(chain);
@@ -92,6 +94,8 @@ export async function handleInfo(
     console.error("info balance lookup failed", message);
   }
 
+  const ethUsd = await pricePromise;
+
   return json(request, env, {
     slug: chain.config.slug,
     name: chain.config.name,
@@ -102,6 +106,8 @@ export async function handleInfo(
     explorerUrl: chain.config.explorerUrl,
     faucetAddress,
     balance,
+    ethUsd,
+    balanceUsd: usdFromEth(balance, ethUsd),
     paused: chain.paused,
   });
 }

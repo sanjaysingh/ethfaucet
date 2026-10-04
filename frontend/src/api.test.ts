@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_FAUCET_API_URL, fetchChains, requestDrip } from "./api";
+import {
+  DEFAULT_FAUCET_API_URL,
+  fetchChains,
+  fetchEthUsdPrice,
+  requestDrip,
+  usdFromEth,
+} from "./api";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -46,5 +52,29 @@ describe("api client", () => {
       message: "Address is on cooldown",
       nextClaimAt: 123,
     });
+  });
+
+  it("parses the Coinbase ETH/USD spot price", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { amount: "2702.285" } }),
+      }),
+    );
+
+    await expect(fetchEthUsdPrice()).resolves.toBe(2702.285);
+  });
+
+  it("returns null when the spot price request fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    await expect(fetchEthUsdPrice()).resolves.toBeNull();
+  });
+});
+
+describe("usdFromEth", () => {
+  it("values an ETH amount at the given spot", () => {
+    expect(usdFromEth("1.5", 3000)).toBe("4500.00");
+    expect(usdFromEth(null, 3000)).toBeNull();
   });
 });

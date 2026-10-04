@@ -32,6 +32,8 @@ describe("App", () => {
       explorerUrl: "https://sepolia.etherscan.io",
       faucetAddress: "0xabc",
       balance: "1.5",
+      ethUsd: 3000,
+      balanceUsd: "4500.00",
       paused: false,
     });
 
@@ -43,6 +45,8 @@ describe("App", () => {
       expect(select).toHaveValue("sepolia");
       expect(select).toBeDisabled();
       expect(screen.getByText("0.01 ETH")).toBeInTheDocument();
+      expect(screen.getByText("1.500 ETH")).toBeInTheDocument();
+      expect(screen.getByText("$4,500.00")).toBeInTheDocument();
     });
     expect(
       screen.queryByText(/API for other apps/i),
@@ -79,5 +83,26 @@ describe("App", () => {
       "Enter a wallet address",
     );
     expect(drip).not.toHaveBeenCalled();
+  });
+
+  it("values the faucet from a spot price when the API omits USD", async () => {
+    vi.spyOn(api, "fetchChainInfo").mockResolvedValue({
+      slug: "sepolia",
+      name: "Sepolia",
+      chainId: 11155111,
+      dripAmount: "0.01",
+      symbol: "ETH",
+      cooldownSeconds: 86400,
+      explorerUrl: "https://sepolia.etherscan.io",
+      faucetAddress: "0xabc",
+      balance: "0.5",
+      paused: false,
+    });
+    vi.spyOn(api, "fetchEthUsdPrice").mockResolvedValue(2700);
+
+    render(<App />);
+
+    expect(await screen.findByText("0.500 ETH")).toBeInTheDocument();
+    expect(await screen.findByText("$1,350.00")).toBeInTheDocument();
   });
 });
