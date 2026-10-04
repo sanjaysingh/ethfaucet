@@ -19,6 +19,10 @@ export type ChainInfo = {
   explorerUrl: string;
   faucetAddress: string | null;
   balance: string | null;
+  /** Mainnet ETH/USD spot used to value the faucet wallet. */
+  ethUsd?: number | null;
+  /** Faucet balance in USD, 2 decimal places. */
+  balanceUsd?: string | null;
   paused: boolean;
 };
 
@@ -75,6 +79,35 @@ export async function fetchChains(): Promise<ChainSummary[]> {
 export async function fetchChainInfo(slug: string): Promise<ChainInfo> {
   const res = await fetch(`${apiBase()}/api/${encodeURIComponent(slug)}/info`);
   return parseJson<ChainInfo>(res);
+}
+
+const ETH_USD_SPOT_URL = "https://api.coinbase.com/v2/prices/ETH-USD/spot";
+
+/** Browser fallback when the info API omits ethUsd (older workers). */
+export async function fetchEthUsdPrice(): Promise<number | null> {
+  try {
+    const res = await fetch(ETH_USD_SPOT_URL, {
+      signal: AbortSignal.timeout(4000),
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { data?: { amount?: string } };
+    const usd = Number(data?.data?.amount);
+    return Number.isFinite(usd) && usd > 0 ? usd : null;
+  } catch {
+    return null;
+  }
+}
+
+export function usdFromEth(
+  ethAmount: string | null | undefined,
+  ethUsd: number | null | undefined,
+): string | null {
+  if (ethAmount == null || ethUsd == null) return null;
+  if (!Number.isFinite(ethUsd) || ethUsd <= 0) return null;
+  const eth = Number(ethAmount);
+  if (!Number.isFinite(eth)) return null;
+  return (eth * ethUsd).toFixed(2);
 }
 
 export async function fetchCooldown(

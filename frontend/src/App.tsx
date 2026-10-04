@@ -2,11 +2,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import {
   fetchChainInfo,
   fetchCooldown,
+  fetchEthUsdPrice,
   requestDrip,
+  usdFromEth,
   type ChainInfo,
   type DripSuccess,
 } from "./api";
-import { formatCountdown, validateAddress } from "./validation";
+import { formatCountdown, formatUsd, validateAddress } from "./validation";
 import { Turnstile } from "./Turnstile";
 
 const DEFAULT_CHAIN_SLUG = "sepolia";
@@ -24,12 +26,16 @@ export function App() {
   const [success, setSuccess] = useState<DripSuccess | null>(null);
   const [nextClaimAt, setNextClaimAt] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [fallbackEthUsd, setFallbackEthUsd] = useState<number | null>(null);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
   const cooldownHint =
     nextClaimAt != null && nextClaimAt > now
       ? `On cooldown — next claim in ${formatCountdown(nextClaimAt, now)}`
       : null;
+  const faucetUsd = formatUsd(
+    info?.balanceUsd ?? usdFromEth(info?.balance, fallbackEthUsd),
+  );
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -58,6 +64,22 @@ export function App() {
       cancelled = true;
     };
   }, [slug]);
+
+  useEffect(() => {
+    if (info?.ethUsd != null && Number.isFinite(info.ethUsd)) {
+      setFallbackEthUsd(info.ethUsd);
+      return;
+    }
+    if (info?.balanceUsd != null || info?.balance == null) return;
+    let cancelled = false;
+    (async () => {
+      const usd = await fetchEthUsdPrice();
+      if (!cancelled) setFallbackEthUsd(usd);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [info]);
 
   // Fetch cooldown once per address change (debounced). Do NOT depend on `now`
   // or this refetches every second while the countdown ticks.
@@ -175,6 +197,7 @@ export function App() {
                       ? `${Number(info.balance).toFixed(3)} ${info.symbol}`
                       : "—"}
                   </strong>
+                  {faucetUsd && <span className="stat-sub">{faucetUsd}</span>}
                 </div>
               </div>
             )}

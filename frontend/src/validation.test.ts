@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCountdown, validateAddress } from "./validation";
+import { formatCountdown, formatUsd, validateAddress } from "./validation";
 
 describe("validateAddress", () => {
   it("requires a non-empty address", () => {
@@ -15,6 +15,20 @@ describe("validateAddress", () => {
     expect(
       validateAddress("0x742d35Cc6634C0532925a3b844Bc454e4438f44e"),
     ).toBeNull();
+  });
+});
+
+describe("formatUsd", () => {
+  it("formats a dollar amount with grouping", () => {
+    expect(formatUsd("2540.12")).toBe("$2,540.12");
+    expect(formatUsd(0)).toBe("$0.00");
+  });
+
+  it("returns null for missing or invalid values", () => {
+    expect(formatUsd(null)).toBeNull();
+    expect(formatUsd(undefined)).toBeNull();
+    expect(formatUsd("")).toBeNull();
+    expect(formatUsd("nope")).toBeNull();
   });
 });
 

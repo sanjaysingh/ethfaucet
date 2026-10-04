@@ -7,6 +7,16 @@ export function validateAddress(value: string): string | null {
   return null;
 }
 
+export function formatUsd(value: string | number | null | undefined): string | null {
+  if (value == null || value === "") return null;
+  const amount = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(amount)) return null;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+}
+
 export function formatCountdown(nextClaimAt: number, now = Date.now()): string {
   const ms = Math.max(0, nextClaimAt - now);
   const totalSec = Math.ceil(ms / 1000);

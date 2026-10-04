@@ -156,6 +156,15 @@ select:focus {
   font-weight: 500;
 }
 
+.stat-sub {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
 .cta {
   appearance: none;
   border: 0;
