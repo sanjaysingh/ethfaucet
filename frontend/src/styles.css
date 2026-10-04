@@ -156,6 +156,19 @@ select:focus {
   font-weight: 500;
 }
 
+.stat-usd,
+.faucet-holdings {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+
+.faucet-holdings {
+  margin: 0;
+}
+
 .cta {
   appearance: none;
   border: 0;

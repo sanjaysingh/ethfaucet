@@ -89,9 +89,13 @@ Base URL: `https://faucet-api.times2.workers.dev` (override locally with `VITE_F
 | --- | --- | --- |
 | `GET` | `/` | service name and available endpoints |
 | `GET` | `/api/chains` | enabled chains |
-| `GET` | `/api/:chain/info` | balance, drip size, cooldown, faucet address |
+| `GET` | `/api/:chain/info` | ETH balance, USD value (mainnet ETH spot), drip size, cooldown, faucet address |
 | `GET` | `/api/:chain/cooldown/:address` | address cooldown only; IP cooldown is checked when claiming |
 | `POST` | `/api/:chain/drip` | `{ "address", "turnstileToken" }` |
+
+`GET /api/:chain/info` also returns `ethUsd` (mainnet ETH spot) and
+`balanceUsd` so clients can show the faucet wallet's approximate dollar
+value. Testnet ETH has no intrinsic price; the quote is a mainnet reference.
 
 The claim endpoint validates the address and Turnstile token, checks address
 and IP cooldowns, verifies that the recipient is not a contract, and then

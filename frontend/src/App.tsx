@@ -6,6 +6,12 @@ import {
   type ChainInfo,
   type DripSuccess,
 } from "./api";
+import {
+  fetchEthUsdSpot,
+  formatEthAmount,
+  formatUsdAmount,
+  resolveFaucetUsd,
+} from "./money";
 import { formatCountdown, validateAddress } from "./validation";
 import { Turnstile } from "./Turnstile";
 
@@ -24,6 +30,7 @@ export function App() {
   const [success, setSuccess] = useState<DripSuccess | null>(null);
   const [nextClaimAt, setNextClaimAt] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [spotUsd, setSpotUsd] = useState<number | null>(null);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
   const cooldownHint =
@@ -58,6 +65,37 @@ export function App() {
       cancelled = true;
     };
   }, [slug]);
+
+  useEffect(() => {
+    if (!info) {
+      setSpotUsd(null);
+      return;
+    }
+    if (info.ethUsd != null || info.balanceUsd != null) {
+      setSpotUsd(info.ethUsd ?? null);
+      return;
+    }
+    if (info.balance == null) {
+      setSpotUsd(null);
+      return;
+    }
+    let cancelled = false;
+    fetchEthUsdSpot().then((usd) => {
+      if (!cancelled) setSpotUsd(usd);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [info]);
+
+  const faucetUsd = info
+    ? resolveFaucetUsd({
+        balance: info.balance,
+        balanceUsd: info.balanceUsd,
+        ethUsd: info.ethUsd,
+        spotUsd,
+      })
+    : null;
 
   // Fetch cooldown once per address change (debounced). Do NOT depend on `now`
   // or this refetches every second while the countdown ticks.
@@ -172,9 +210,17 @@ export function App() {
                   <span className="stat-label">Balance</span>
                   <strong>
                     {info.balance != null
-                      ? `${Number(info.balance).toFixed(3)} ${info.symbol}`
+                      ? formatEthAmount(info.balance, info.symbol)
                       : "—"}
                   </strong>
+                  {faucetUsd != null && (
+                    <span
+                      className="stat-usd"
+                      title="Approximate USD value using the mainnet ETH spot price"
+                    >
+                      {formatUsdAmount(faucetUsd)}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -241,6 +287,12 @@ export function App() {
               {info.faucetAddress}
             </a>
           </p>
+          {info.balance != null && (
+            <p className="faucet-holdings">
+              {formatEthAmount(info.balance, info.symbol)}
+              {faucetUsd != null ? ` · ${formatUsdAmount(faucetUsd)}` : ""}
+            </p>
+          )}
         </footer>
       )}
     </div>

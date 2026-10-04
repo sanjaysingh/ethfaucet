@@ -19,6 +19,10 @@ export type ChainInfo = {
   explorerUrl: string;
   faucetAddress: string | null;
   balance: string | null;
+  /** Mainnet ETH/USD spot used to value the faucet balance. */
+  ethUsd?: number | null;
+  /** Faucet balance * ethUsd, two decimal places. */
+  balanceUsd?: string | null;
   paused: boolean;
 };
 

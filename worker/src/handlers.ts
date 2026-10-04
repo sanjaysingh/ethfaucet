@@ -9,6 +9,7 @@ import {
   formatBalanceEth,
   getFaucetBalanceWei,
 } from "./chainClient";
+import { fetchEthUsd, formatBalanceUsd } from "./price";
 import {
   addrKey,
   computeCooldownStatus,
@@ -79,18 +80,30 @@ export async function handleInfo(
   }
 
   const { chain } = resolved;
-  let faucetAddress: string | null = null;
-  let balance: string | null = null;
+  const [wallet, ethUsd] = await Promise.all([
+    (async () => {
+      try {
+        const { publicClient, account } = createClients(chain);
+        const wei = await getFaucetBalanceWei(publicClient, account.address);
+        return { faucetAddress: account.address, balance: formatBalanceEth(wei) };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("info balance lookup failed", message);
+        return { faucetAddress: null as string | null, balance: null as string | null };
+      }
+    })(),
+    fetchEthUsd().catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("eth usd lookup failed", message);
+      return null;
+    }),
+  ]);
 
-  try {
-    const { publicClient, account } = createClients(chain);
-    faucetAddress = account.address;
-    const wei = await getFaucetBalanceWei(publicClient, account.address);
-    balance = formatBalanceEth(wei);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("info balance lookup failed", message);
-  }
+  const { faucetAddress, balance } = wallet;
+  const balanceUsd =
+    balance != null && ethUsd != null
+      ? formatBalanceUsd(balance, ethUsd)
+      : null;
 
   return json(request, env, {
     slug: chain.config.slug,
@@ -102,6 +115,8 @@ export async function handleInfo(
     explorerUrl: chain.config.explorerUrl,
     faucetAddress,
     balance,
+    ethUsd,
+    balanceUsd,
     paused: chain.paused,
   });
 }
